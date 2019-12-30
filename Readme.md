@@ -48,7 +48,7 @@ We call such first elements the *top* elements of each array.
 
 If you are confused after this explanation look at the clarifying picture below:
 
-![alt text](fig_heap.png)
+![alt text](doc/fig_heap.png)
 
 The two basic operations performed in a heap are:
 - *pop*: extraction of the minumum element (the top item in the root array), then in order to fill the empty slot the last element of the heap is moved to the top position in the root array. The change is then propagated down the tree until the heap property is recovered;
@@ -75,7 +75,7 @@ which means trading expensive local memory accesses for cheap shared memory ones
 since we can take the minimum of 32 numbers whithin a warp in parallel, by calling 6 times the
 shuffle instruction, as shown below with an example.
 
-![alt text](fig_min.png)
+![alt text](doc/fig_min.png)
 
 With the model described here each warp accesses its own priority queue, which is sitting on the
 threads local
@@ -95,6 +95,6 @@ since any small improvement there is an overall improvement.
 
 We use the graphs USA-road-d.NY.gr (264'346 nodes and 733'846 edges), USA-road-d.BAY.gr (321'270 nodes and 800'172 edges), USA-road-d.COL.gr (435'666 nodes and 1'057'066 edges), and compute the shortest paths from 1024 random origins.
 
-![alt text](plot.png)
+![alt text](doc/plot.png)
 
 We see we get some improvement using our CUDA implementation, not astonishing, but not bad considering that GPUs are normally not best suited for graph algorithms in general. We also remark that road networks's connectivity is low when compared to other types of graphs, so the priority queue is not expected to grow very large. It would be interesting (and I'll do it when I'll have some spare time) to test how does the data structure perform in different situations, such as with social media graphs. If you have an NVidia GPU try out yourself and see what you get!

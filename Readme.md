@@ -98,3 +98,5 @@ We use the graphs USA-road-d.NY.gr (264'346 nodes and 733'846 edges), USA-road-d
 ![alt text](doc/plot.png)
 
 We see we get some improvement using our CUDA implementation, not astonishing, but not bad considering that GPUs are normally not best suited for graph algorithms in general. We also remark that road networks's connectivity is low when compared to other types of graphs, so the priority queue is not expected to grow very large. It would be interesting (and I'll do it when I'll have some spare time) to test how does the data structure perform in different situations, such as with social media graphs. If you have an NVidia GPU try out yourself and see what you get!
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3595244.svg)](https://doi.org/10.5281/zenodo.3595244)

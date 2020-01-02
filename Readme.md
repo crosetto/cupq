@@ -56,7 +56,18 @@ The two basic operations performed in a heap are:
 
 Each thread in the warp is *responsible* of one value in the arrays. To keep the array sorted, when doing operations like extracting the minimum, or inserting a new element, 
 the threads have to compare and shuffle their own value with each other, and that's
-roughly where the GPU ballot, vote, and shuffle instructions come into play (in device/haep.h ). With this idea we exploit at best the memory bandwidth, 
+roughly where the GPU ballot, bfind, and shuffle instructions come into play (in src/device/node.h ).
+
+In particular say we want to insert a new item in an array, whithin either a pop or an insert, and evict another item which will be propaagted onward.
+We first compare the input item with the top item of the array. If the input item is smaller then we just replace the top element, shift up the whole array (using the shuffle instruction),
+and evict the largest element in the array. If the input element is not the smallest one,
+we create a bit mask in a 32 bits register using the ballot instruction. Each thread compares its item's cost with the cost of the input item,
+and sets its correspondig bit in the mask to 1 if it is smaller, to 0 otherwise. We get a mask like 00000001111111111111111111111111. We add 1 to this register, to get
+00000010000000000000000000000000 (this ensures that there is at least one bit set in the mask register).
+The location of the first nonzero bit is the location where the given item must be inserted, and we use the *bfind* PTX intrinsic to get it.
+The evicted item is either the smallest element (if we are propagating upward, whithin a *pop*) or the largest element (if we are propagating downward, whithin an *insert*). Once we identified the location of the fist nonzero bit, we use the shuffle instruction to shift (left when popping pop, or right when inserting) all the affected items.
+
+With this idea we exploit at best the memory bandwidth, 
 since all threads are accessing their own element in the array concurrently, and they communicate through the shuffle instruction. 
 The operations of the Dijkstra algorithm are instead redundantly computed by all the cores in the warp.
 

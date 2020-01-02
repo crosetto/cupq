@@ -1,5 +1,7 @@
 # CUPQ: a CUDA implementation of a Priority Queue applied to the many-to-many shortest path problem
 
+[![DOI](citation.bib)](download BibTex citation)
+
 This tiny library implements a priority queue in CUDA, the goal (besides showing the data structure and its implementation) is to compare it with the best CPU implementation we know
  (from Boost or the STL) on a Dijkstra algorithm benchmark. I used for comparison the GPUs in my laptops (here we show results with a Maxwell M1200 and GeForce GTX 1050 Mobile GPUs).
 We assume it's fair to compare them with a single core of a high-end multicore CPU (in this case i7-7820HQ CPU). In fact a gaming GPU such as the GTX 1080 would have approximately 

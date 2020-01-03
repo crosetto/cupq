@@ -58,17 +58,29 @@ Each thread in the warp is *responsible* of one value in the arrays. To keep the
 the threads have to compare and shuffle their own value with each other, and that's
 roughly where the GPU ballot, bfind, and shuffle instructions come into play (in src/device/node.h ).
 
-In particular say we want to insert a new item in an array, whithin either a pop or an insert, and evict another item which will be propaagted onward.
-We first compare the input item with the top item of the array. If the input item is smaller then we just replace the top element, shift up the whole array (using the shuffle instruction),
-and evict the largest element in the array. If the input element is not the smallest one,
-we create a bit mask in a 32 bits register using the ballot instruction. Each thread compares its item's cost with the cost of the input item,
-and sets its correspondig bit in the mask to 1 if it is smaller, to 0 otherwise. We get a mask like 00000001111111111111111111111111. We add 1 to this register, to get
+In particular say we want to propagate down an item, whithin a pop, and evict another item which will be propaagted further down.
+We first take the minimum of the children by comparing their *top* items weights. Once we have selected the min child, we compare the input item with the top item of the child array.
+If the input item is smaller than the top item,
+then the heap property is already satisfied,
+so we just return the input element. Otherwise, if the input element is not the smallest one in the min child array,
+we create a bit mask in a 32 bits register using the ballot instruction. Each thread compares its own item's cost in the min child array with the cost of the input item,
+and sets its correspondig bit in the mask to 1 if it is smaller, to 0 otherwise. Notice that there is at least one bit set to 0 in the mask,
+because the input item is not the smallest one.
+We get a mask like 00000001111111111111111111111111. We add 1 to this register, to get
 00000010000000000000000000000000 (this ensures that there is at least one bit set in the mask register).
 The location of the first nonzero bit is the location where the given item must be inserted, and we use the *bfind* PTX intrinsic to get it.
-The evicted item is either the smallest element (if we are propagating upward, whithin a *pop*) or the largest element (if we are propagating downward, whithin an *insert*). Once we identified the location of the fist nonzero bit, we use the shuffle instruction to shift (left when popping pop, or right when inserting) all the affected items.
+Once we identified the location of the fist nonzero bit, we use the shuffle instruction to shift up all the items in the array that have a smaller cost than the input item.
+The evicted item is the smallest element in the child array, which is inserted in the parent node. The new
+top item of the array is the one to be further compared with the children to restore the heap property.
+
+When propagating up, during the *insert* procedure, we use a similar strategy. Selecting the parent node is just an algebraic operation on the child index. We start from a leaf node,
+where we insert the input item,
+and traverse the heap upward. At each hop we store in a stack an ordinal identifying the child node, and we continue until we find a node in which the *top* item has a smaller cost than
+the input one. At this point we insert the item in the array of the node we found, in a similar way as for the *pop* procedure, just replacing the shift-up with a shift-down, and evicting the largest element instead of the smallest one. We then follow downward the path we recorded by unwinding the stack, inserting the propagated item and evicting the largest one
+at each hop, until we reach the leaf.
 
 With this idea we exploit at best the memory bandwidth, 
-since all threads are accessing their own element in the array concurrently, and they communicate through the shuffle instruction. 
+since all threads are accessing their own element in the arrays concurrently, and they communicate through the shuffle instruction. 
 The operations of the Dijkstra algorithm are instead redundantly computed by all the cores in the warp.
 
 The simplest implementation of a heap data structure would be a binary heap, as the one shown in the picture above. However increasing the heap *arity* reduces the number of hops performed to reach a given node, thus might reduce expensive memory accesses.

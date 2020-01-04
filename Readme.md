@@ -1,7 +1,7 @@
 # CUPQ: a CUDA implementation of a Priority Queue applied to the many-to-many shortest path problem
 
 This tiny library implements a priority queue in CUDA, the goal (besides showing the data structure and its implementation) is to compare it with the best CPU implementation we know
- (from Boost or the STL) on a Dijkstra algorithm benchmark. I used for comparison the GPUs in my laptops (here we show results with a Maxwell M1200 and GeForce GTX 1050 Mobile GPUs).
+ (from Boost or the STL) on a Dijkstra algorithm benchmark. I used for comparison the GPUs in my laptops (a Maxwell M1200 and GeForce GTX 1050 Mobile GPUs).
 We assume it's fair to compare them with a single core of a high-end multicore CPU (in this case i7-7820HQ CPU). In fact a gaming GPU such as the GTX 1080 would have approximately 
 4 times the hardware and memory bandwidth compared to these laptop GPUs, and also the prices of the GTX 1080 and the multicore processor i7-7820HQ are approximately matching (around 400$).
 
@@ -15,9 +15,9 @@ run CMake to configure the project
 > mkdir build;
 > cd build; cmake -DCOMPUTE_CAPABILITY=61 -DTIMINGS -DCPU_COMPARISON -DCMAKE_BUILD_TYPE=RELEASE ..
 ```
-where you have to input the compute capability of your NVidia graphic card without the intermediate point (for the GTX 1050 Mobile the compute capability is 6.1).
+where you have to input the compute capability of your NVidia graphic card without the dot (for the GTX 1050 Mobile the compute capability is 6.1).
 
-Download a couple of input graphs to run the examples
+Download and unzip a couple of input graphs to run the examples
 ```
 > make download_grahs
 ```
@@ -33,6 +33,7 @@ Run the shortest paths benchmark
 ```
 
 This benchmark will select randomly origins and destinations and execute the algorithm. You can set the number of origins/destinations by editing the file examples/dijkstra_simple/main.cpp.
+You can also tune parameters in examples/dijkstra_simple/dijkstra_simple.cu such as the number of streams (useful to overlap the kernels execution and data transfer), and the chunk size (the number of origins consumed at each kernel launch).
 
 ## Heap Data Structure
 
@@ -40,10 +41,10 @@ The basic idea of this CUDA implementation of the many-to-many shortest path pro
 The heap is a balanced tree data structure which satisfies the *heap property*: the value of the parent node is smaller than or equal to the value of the children.
 
 Actually we don't really use a traditional heap: we replace the nodes in the heap with sorted arrays
-of 32 items, where an item is a pair containing a value (32 bit floating point number representing the distance from the destination) and a key (32 bit integer identifiyng the node in the graph).
+of 32 items, where an item is a pair containing a value (32 bit floating point number representing the distance from the origin) and a key (32 bit integer identifiyng the node in the graph).
 These arrays of items are sorted in increasing order with respect to the item's values,
 and the value of the smallest item in each array is satisfying a *heap-like property*: the first element of
-each array has smaller cost than the first element of it's children's first element.
+each array has smaller cost than the first elements of it's children's arrays.
 We call such first elements the *top* elements of each array.
 
 If you are confused after this explanation look at the clarifying picture below:
@@ -51,7 +52,7 @@ If you are confused after this explanation look at the clarifying picture below:
 ![alt text](doc/fig_heap.png)
 
 The two basic operations performed in a heap are:
-- *pop*: extraction of the minumum element (the top item in the root array), then in order to fill the empty slot the last element of the heap is moved to the top position in the root array. The change is then propagated down the tree until the heap property is recovered;
+- *pop*: extraction of the minumum element (the top item in the root array), then in order to fill the empty slot the top element of the last node of the heap is moved to the top position in the root array. The change is then propagated down the tree until the heap property is recovered;
 - *insert*: a new element is inserted at the bottom of the heap, adding a new child if necessary (but keeping the tree balanced), otherwise filling an empty slot in an existing array (and maintaining the order whithin the array), then the change is propagated up until the heap property is recovered.
 
 Each thread in the warp is *responsible* of one value in the arrays. To keep the array sorted, when doing operations like extracting the minimum, or inserting a new element, 
@@ -65,13 +66,13 @@ then the heap property is already satisfied,
 so we just return the input element. Otherwise, if the input element is not the smallest one in the min child array,
 we create a bit mask in a 32 bits register using the ballot instruction. Each thread compares its own item's cost in the min child array with the cost of the input item,
 and sets its correspondig bit in the mask to 1 if it is smaller, to 0 otherwise. Notice that there is at least one bit set to 0 in the mask,
-because the input item is not the smallest one.
+because the input item is not the smallest one whithin the child array.
 We get a mask like 00000001111111111111111111111111. We add 1 to this register, to get
-00000010000000000000000000000000 (this ensures that there is at least one bit set in the mask register).
+00000010000000000000000000000000 (this ensures that there is at least one bit set in the register).
 The location of the first nonzero bit is the location where the given item must be inserted, and we use the *bfind* PTX intrinsic to get it.
 Once we identified the location of the fist nonzero bit, we use the shuffle instruction to shift up all the items in the array that have a smaller cost than the input item.
 The evicted item is the smallest element in the child array, which is inserted in the parent node. The new
-top item of the array is the one to be further compared with the children to restore the heap property.
+top item of the array is the one to be further compared with its children to restore the heap property.
 
 When propagating up, during the *insert* procedure, we use a similar strategy. Selecting the parent node is just an algebraic operation on the child index. We start from a leaf node,
 where we insert the input item,
@@ -109,10 +110,10 @@ eventually the solution to the many-to-all shortest path problem.
 
 Computing the Shortest Path typically involves
 little computation (i.e. arithmetic operations), and a large amount of memory accesses. Algorithms with such behaviour are called
-\emph{memory-bound} algorithms, since their performance is bound by the speed of the memory accesses, as opposed to \emph{compute-bound} algorithms which are limited by the
+*memory-bound* algorithms, since their performance is bound by the speed of the memory accesses, as opposed to *compute-bound* algorithms which are limited by the
 speed of the Arithmetic Logic Units (ALU) or Floating Point Units (FPU). For memory bound
  applications the computation time is often completely hidden by the latency of memory accesses, thus
-improving the efficiency of the former (e.g. by choosing processors with higher clock frequency, vectorizing floating point operations, etc...) does not reflect in any improvement overall.
+improving the efficiency of the arithmetic operations (e.g. by choosing processors with higher clock frequency, vectorizing floating point operations, etc...) does not reflect in any improvement overall.
 On the other hand one has to make sure that the available memory bandwidth utilized at best, and that the slow memory accesses are minimized,
 since any small improvement there is an overall improvement.
 
@@ -120,7 +121,7 @@ We use the graphs USA-road-d.NY.gr (264'346 nodes and 733'846 edges), USA-road-d
 
 ![alt text](doc/plot.png)
 
-We see we get some improvement using our CUDA implementation, not astonishing, but not bad considering that GPUs are normally not best suited for graph algorithms in general. We also remark that road networks's connectivity is low when compared to other types of graphs, so the priority queue is not expected to grow very large. It would be interesting (and I'll do it when I'll have some spare time) to test how does the data structure perform in different situations, such as with social media graphs. If you have an NVidia GPU try out yourself and see what you get!
+We see we get some improvement using our CUDA implementation, not astonishing, but not bad considering that GPUs are normally not best suited for graph algorithms in general. We also remark that road networks's connectivity is low when compared to other types of graphs, so the priority queue is not expected to grow very large. It would be interesting (and I might do it when I'll have some spare time) to test how does the data structure perform with more highly connected graphs, such as with social media graphs. If you have an NVidia GPU try out the benchmarks yourself and see what you get!
 
 ![BibTex citation](citation.bib)
 

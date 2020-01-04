@@ -96,10 +96,13 @@ turns out to be more efficient than a classical binary heap. In fact when we do 
 and propagate the change down the heap, we compare the cost of the parent's top item (cached in shared memory) with the top items of the children (also in shared memory),
 in order to select which child array to access. Having larger arity increases the number of comparisons, but it decreases the height of the heap,
 which means trading expensive local memory accesses for cheap shared memory ones. A natural choice for the arity is 32,
-since we can take the minimum of 32 numbers whithin a warp in parallel, by calling 6 times the
+since we can take the minimum of 32 numbers whithin a warp in parallel, by calling 5 times the
 shuffle instruction, as shown below with an example.
 
 ![alt text](doc/fig_min.png)
+
+In the picture above we take 32 registers. We compare at each level pairs of elements, and whenever they are not in increasing order we copy the second element into the first one.
+After repeating this 5 times we have the smallest element in the leftmost position.
 
 With the model described here each warp accesses its own priority queue, which is sitting on the
 threads local

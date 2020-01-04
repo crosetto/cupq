@@ -57,7 +57,7 @@ The two basic operations performed in a heap are:
 
 Each thread in the warp is *responsible* of one value in the arrays. To keep the array sorted, when doing operations like extracting the minimum, or inserting a new element, 
 the threads have to compare and shuffle their own value with each other, and that's
-roughly where the GPU ballot, bfind, and shuffle instructions come into play (in src/device/node.h ).
+roughly where the GPU ballot, bfind, and shuffle instructions come into play (in ![src/device/node.h](src/device/node.h) ).
 
 In particular say we want to propagate down an item, whithin a pop, and evict another item which will be propaagted further down.
 We first take the minimum of the children by comparing their *top* items weights. Once we have selected the min child, we compare the input item with the top item of the child array.

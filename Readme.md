@@ -40,7 +40,7 @@ You can also tune parameters in examples/dijkstra_simple/dijkstra_simple.cu such
 The basic idea of this CUDA implementation of the many-to-many shortest path problem consists in assigning a heap-based priority queue to each CUDA *warp*.
 The heap is a balanced tree data structure which satisfies the *heap property*: the value of the parent node is smaller than or equal to the value of the children.
 
-Actually we don't really use a traditional heap: we replace the nodes in the heap with sorted arrays
+Actually we don't really use a regular heap: we replace the nodes in the heap with sorted arrays
 of 32 items, where an item is a pair containing a value (32 bit floating point number representing the distance from the origin) and a key (32 bit integer identifiyng the node in the graph).
 These arrays of items are sorted in increasing order with respect to the item's values,
 and the value of the smallest item in each array is satisfying a *heap-like property*: the first element of

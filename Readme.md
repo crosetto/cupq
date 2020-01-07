@@ -55,7 +55,7 @@ The two basic operations performed in a heap are:
 - *pop*: extraction of the minumum element (the top item in the root array), then in order to fill the empty slot the top element of the last node of the heap is moved to the top position in the root array. The change is then propagated down the tree until the heap property is recovered;
 - *insert*: a new element is inserted at the bottom of the heap, adding a new child if necessary (but keeping the tree balanced), otherwise filling an empty slot in an existing array (and maintaining the order whithin the array), then the change is propagated up until the heap property is recovered.
 
-Each thread in the warp is *responsible* of one value in the arrays. To keep the array sorted, when doing operations like extracting the minimum, or inserting a new element, 
+Each thread in the warp is *responsible* for one value in the arrays. To keep the array sorted, when doing operations like extracting the minimum, or inserting a new element, 
 the threads have to compare and shuffle their own value with each other, and that's
 roughly where the GPU ballot, bfind, and shuffle instructions come into play (in ![src/device/node.h](src/device/node.h) ).
 

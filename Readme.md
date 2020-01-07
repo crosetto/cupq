@@ -1,6 +1,6 @@
 # CUPQ: a CUDA implementation of a Priority Queue applied to the many-to-many shortest path problem
 
-This tiny library implements a priority queue in CUDA, the goal (besides showing the data structure and its implementation) is to compare it with the best CPU implementation we know
+This library implements a priority queue in CUDA, the goal (besides showing the data structure and its implementation) is to compare it with the CPU implementations
  (from Boost or the STL) on a Dijkstra algorithm benchmark. I used for comparison the GPUs in my laptops (a Maxwell M1200 and GeForce GTX 1050 Mobile GPUs).
 We assume it's fair to compare them with a single core of a high-end multicore CPU (in this case i7-7820HQ CPU). In fact a gaming GPU such as the GTX 1080 would have approximately 
 4 times the hardware and memory bandwidth compared to these laptop GPUs, and also the prices of the GTX 1080 and the multicore processor i7-7820HQ are approximately matching (around 400$).
@@ -118,13 +118,15 @@ speed of the Arithmetic Logic Units (ALU) or Floating Point Units (FPU). For mem
  applications the computation time is often completely hidden by the latency of memory accesses, thus
 improving the efficiency of the arithmetic operations (e.g. by choosing processors with higher clock frequency, vectorizing floating point operations, etc...) does not reflect in any improvement overall.
 On the other hand one has to make sure that the available memory bandwidth utilized at best, and that the slow memory accesses are minimized,
-since any small improvement there is an overall improvement.
+since any small improvement there is an overall improvement. 
+
+This is what we try to achieve in this CUDA implementation, making sure data accesses are coalesced whenever possible and caching values in shared memory, while the Dijkstra relaxation operations (floating point arithmetic and control flow) is redundantly computed by all threads.
 
 We use the graphs USA-road-d.NY.gr (264'346 nodes and 733'846 edges), USA-road-d.BAY.gr (321'270 nodes and 800'172 edges), USA-road-d.COL.gr (435'666 nodes and 1'057'066 edges), and compute the shortest paths from 1024 random origins.
 
 ![alt text](doc/plot.png)
 
-We see we get some improvement using our CUDA implementation, not astonishing, but not bad considering that GPUs are normally not best suited for graph algorithms in general. We also remark that road networks's connectivity is low when compared to other types of graphs, so the priority queue is not expected to grow very large. It would be interesting (and I might do it when I'll have some spare time) to test how does the data structure perform with more highly connected graphs, such as with social media graphs. If you have an NVidia GPU try out the benchmarks yourself and see what you get!
+We see that we get some improvement using our CUDA implementation, not bad considering that GPUs are normally not best suited for graph algorithms in general. We also remark that road networks's connectivity is low when compared to other types of graphs, so the priority queue is not expected to grow very large. It would be interesting to test how does the data structure perform with more highly connected graphs, such as with social media graphs. If you have an NVidia GPU try out the benchmarks yourself and see what you get!
 
 ![BibTex citation](citation.bib)
 

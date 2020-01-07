@@ -59,12 +59,12 @@ Each thread in the warp is *responsible* for one value in the arrays. To keep th
 the threads have to compare and shuffle their own value with each other, and that's
 roughly where the GPU ballot, bfind, and shuffle instructions come into play (in ![src/device/node.h](src/device/node.h) ).
 
-In particular say we want to propagate down an item, whithin a pop, and evict another item which will be propaagted further down.
-We first take the minimum of the children by comparing their *top* items weights. Once we have selected the min child, we compare the input item with the top item of the child array.
-If the input item is smaller than the top item,
+In particular say we want to propagate down an item, whithin a pop, and evict another item from the current node which will be propaagted further down.
+We first take the minimum of the children by comparing their *top* items weights. Once we have selected the min child, we compare the input item with the top item of the min child array.
+If the input item's weight is smaller than the top weight in the min child,
 then the heap property is already satisfied,
-so we just return the input element. Otherwise, if the input element is not the smallest one in the min child array,
-we create a bit mask in a 32 bits register using the ballot instruction. Each thread compares its own item's cost in the min child array with the cost of the input item,
+so we just return the input element. Otherwise, if the input element's weights is not the smallest one in the min child array,
+we create a bit mask in a 32 bits register using the GPU ballot instruction. Each thread compares its own item's cost in the min child array with the cost of the input item,
 and sets its correspondig bit in the mask to 1 if it is smaller, to 0 otherwise. Notice that there is at least one bit set to 0 in the mask,
 because the input item is not the smallest one whithin the child array.
 We get a mask like 00000001111111111111111111111111. We add 1 to this register, to get
@@ -72,7 +72,7 @@ We get a mask like 00000001111111111111111111111111. We add 1 to this register, 
 The location of the first nonzero bit is the location where the given item must be inserted, and we use the *bfind* PTX intrinsic to get it.
 Once we identified the location of the fist nonzero bit, we use the shuffle instruction to shift up all the items in the array that have a smaller cost than the input item.
 The evicted item is the smallest element in the child array, which is inserted in the parent node. The new
-top item of the array is the one to be further compared with its children to restore the heap property.
+top item of the min child array is the one to be further compared with its children to restore the heap property.
 
 When propagating up, during the *insert* procedure, we use a similar strategy. Selecting the parent node is just an algebraic operation on the child index. We start from a leaf node,
 where we insert the input item,

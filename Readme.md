@@ -70,7 +70,7 @@ because the input item is not the smallest one whithin the child array.
 We get a mask like 00000001111111111111111111111111. We add 1 to this register, to get
 00000010000000000000000000000000 (this ensures that there is at least one bit set in the register).
 The location of the first nonzero bit is the location where the given item must be inserted, and we use the *bfind* PTX intrinsic to get it.
-Once we identified the location of the fist nonzero bit, we use the shuffle instruction to shift up all the items in the array that have a smaller cost than the input item.
+Once we identifiy the location of the fist nonzero bit, we use the shuffle instruction to shift up all the items in the array that have a smaller cost than the input item.
 The evicted item is the smallest element in the child array, which is inserted in the parent node. The new
 top item of the min child array is the one to be further compared with its children to restore the heap property.
 

@@ -109,7 +109,7 @@ threads local
 memory, so that multiple warps will execute different shortest path algorithms concurrently, computing
 eventually the solution to the many-to-all shortest path problem.
 
-# Results
+## Results
 
 Computing the Shortest Path typically involves
 little computation (i.e. arithmetic operations), and a large amount of memory accesses. Algorithms with such behaviour are called

@@ -25,10 +25,10 @@ std::vector<float> dijkstra_cpu(int argc, char **argv,
                                 std::vector<int> &destinations_) {
 
   // parameters hardcoded
-  int nstreams =
-      1; // number of stream (= number of threads) for the GPU computation
-  unsigned chunk = 1024; // number of input points to consume per thread at once
-
+  // number of stream (= number of threads) for the GPU computation
+  int nstreams = 1;
+  // number of input points to consume per thread at once
+  unsigned chunk = 1024;
   std::vector<float> finalCosts(origins_.size() * destinations_.size(), 0.);
 
   boost::program_options::options_description desc("Allowed options");

@@ -14,8 +14,12 @@ int main(int argc, char **argv) {
   unsigned ndestinations = 1;
   std::vector<int> origins(norigins, 0);
   std::vector<int> destinations(ndestinations, 0);
+  
+#ifdef CPU_COMPARISON
+  auto vec1 = 
+#endif
+  dijkstra_gpu(argc, argv, origins, destinations);
 
-  auto vec1 = dijkstra_gpu(argc, argv, origins, destinations);
 #ifdef CPU_COMPARISON
   if (vec1.size()) {
     std::cout << "total origins: " << origins.size();

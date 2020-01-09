@@ -11,24 +11,24 @@ The problem we are addressing is the simultaneous computation of the shortest pa
 ## Quick start
 
 run CMake to configure the project
-```
+```shell
 > mkdir build;
 > cd build; cmake -DCOMPUTE_CAPABILITY=61 -DTIMINGS -DCPU_COMPARISON -DCMAKE_BUILD_TYPE=RELEASE ..
 ```
 where you have to input the compute capability of your NVidia graphic card without the dot (for the GTX 1050 Mobile the compute capability is 6.1).
 
 Download and unzip a couple of input graphs to run the examples
-```
+```shell
 > make download_grahs
 ```
 
 build the examples
-```
+```shell
 > make -j
 ```
 
 Run the shortest paths benchmark
-```
+```shell
 > ./dijkstra_simple_exe -g USA-road-d.NY
 ```
 
@@ -52,8 +52,8 @@ If you are confused after this explanation look at the clarifying picture below:
 ![alt text](doc/fig_heap.png)
 
 The two basic operations performed in a heap are:
-- *pop*: extraction of the minumum element (the top item in the root array), then in order to fill the empty slot the top element of the last node of the heap is moved to the top position in the root array. The change is then propagated down the tree until the heap property is recovered;
-- *insert*: a new element is inserted at the bottom of the heap, adding a new child if necessary (but keeping the tree balanced), otherwise filling an empty slot in an existing array (and maintaining the order whithin the array), then the change is propagated up until the heap property is recovered.
+  - *pop*: extraction of the minumum element (the top item in the root array), then in order to fill the empty slot the top element of the last node of the heap is moved to the top position in the root array. The change is then propagated down the tree until the heap property is recovered;
+  - *insert*: a new element is inserted at the bottom of the heap, adding a new child if necessary (but keeping the tree balanced), otherwise filling an empty slot in an existing array (and maintaining the order whithin the array), then the change is propagated up until the heap property is recovered.
 
 Each thread in the warp is *responsible* for one value in the arrays. To keep the array sorted, when doing operations like extracting the minimum, or inserting a new element, 
 the threads have to compare and shuffle their own value with each other, and that's

@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3595244.svg)](https://doi.org/10.5281/zenodo.3595244)
+
 # CUPQ: a CUDA implementation of a Priority Queue applied to the many-to-many shortest path problem
 
 This library implements a priority queue in CUDA, the goal (besides showing the data structure and its implementation) is to compare it with the CPU implementations
@@ -130,4 +132,3 @@ We see that we get some improvement using our CUDA implementation, not bad consi
 
 ![BibTex citation](citation.bib)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3595244.svg)](https://doi.org/10.5281/zenodo.3595244)

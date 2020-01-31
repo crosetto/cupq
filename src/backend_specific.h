@@ -8,6 +8,7 @@ namespace cupq {
 template <Backend TBackend> struct BackendSpecific;
 
 template <> struct BackendSpecific<Backend::Host> {
+  auto static constexpr const backend_t=Backend::Host;
   template <typename TT> void attachStream(TT &sources_) {}
   void attachStreamErr() {}
   void init() {}

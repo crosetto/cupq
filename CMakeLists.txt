@@ -118,3 +118,11 @@ add_custom_target(download_graphs BYPRODUCTS USA-road-d.NY.gr.gz USA-road-d.NY.c
                                   COMMAND wget http://users.diag.uniroma1.it/challenge9/data/USA-road-d/USA-road-d.BAY.gr.gz; COMMAND gunzip USA-road-d.BAY.gr.gz;
                                   COMMAND wget http://users.diag.uniroma1.it/challenge9/data/USA-road-d/USA-road-d.BAY.co.gz; COMMAND gunzip USA-road-d.BAY.co.gz;
                                   WORKING_DIRECTORY ${CMAKE_CURRENT_BUILD_DIR})
+
+### A STAR ###
+add_library(astar_cpu SHARED examples/astar/astar.cpp examples/astar/dijkstra.cpp)
+target_include_directories(astar_cpu INTERFACE src)
+add_executable(astar_exe examples/astar/main.cpp)
+target_link_libraries(astar_exe PRIVATE astar_cpu)
+target_include_directories(astar_exe PRIVATE ${Boost_INCLUDE_DIRS})
+target_link_libraries(astar_exe PRIVATE ${Boost_LIBRARIES})

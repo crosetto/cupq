@@ -25,8 +25,7 @@ std::vector<float> dijkstra_gpu(int argc, char **argv,
   cupq::cudaCheckErrors(cudaSetDeviceFlags(cudaDeviceScheduleYield));
 
   // parameters hardcoded
-  int nstreams =
-      1; // number of stream (= number of threads) for the GPU computation
+  int nstreams = 1; // number of stream (= number of threads) for the GPU computation
   unsigned chunk = 1024; // number of input points to consume per thread at once
 
   // the output vector

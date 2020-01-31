@@ -8,6 +8,8 @@ SPDX-License-Identifier: Apache-2.0
 namespace cupq {
 
 template <> struct BackendSpecific<Backend::Cuda> {
+
+  auto static constexpr const backend_t=Backend::Cuda;
   template <typename TT> void attachStream(TT &sources_) {
     return ::cupq::attachStream(&sources_, mStream);
   }

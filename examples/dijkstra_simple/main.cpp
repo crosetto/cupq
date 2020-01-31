@@ -10,8 +10,8 @@ SPDX-License-Identifier: Apache-2.0
 #include <vector>
 int main(int argc, char **argv) {
 
-  unsigned norigins = 1024;
-  unsigned ndestinations = 512;
+  unsigned norigins = 1;
+  unsigned ndestinations = 5;
   std::vector<int> origins(norigins, 0);
   std::vector<int> destinations(ndestinations, 0);
 

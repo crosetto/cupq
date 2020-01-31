@@ -62,6 +62,114 @@ public:
     return ret;
   }
 
+  // reads the Aimsun graph weights
+  H_F void readWeights(char const *filename) {
+    m_weights.resize(0);
+    std::ifstream fin_(filename, std::ios_base::in);
+    if (!fin_) {
+      std::cout << "error reading file\n";
+      return;
+    }
+
+    std::string line_;
+    while (std::getline(fin_, line_)) {
+      std::regex re2(std::string("([0-9].*)"));
+      std::cmatch m2;
+      if (std::regex_search(line_.c_str(), m2, re2)) {
+        m_weights.push_back((TTValue)atof(m2[1].str().c_str()));
+      }
+    }
+  }
+
+
+  // reads the Aimsun graph in "backward" mode
+  H_F void read(char const *filename) {
+    std::ifstream fin_(filename, std::ios_base::in);
+    if (!fin_) {
+      std::cout << "error reading file\n";
+      return;
+    }
+
+    std::string line_;
+    size_t count_edges_ = 0;
+    size_t prev_count_ = 0;
+    m_source_offsets.push_back((index_t)count_edges_);
+    size_t new_dest_ = 0;
+    size_t max_dest_ = 0;
+    while (std::getline(fin_, line_)) {
+      std::regex re2(
+          std::string("N(.*) -> N(.*)\\[.*\"([0-9]*)\" length=\"(.*)\""));
+      std::cmatch m2;
+      index_t orig_ = 0, dest_ = new_dest_;
+      if (std::regex_search(line_.c_str(), m2, re2)) {
+        // std::cout<< m2[1]<<", "<<m2[2]<<", " <<std::stof(m2[3].str()) << ",
+        // "<< std::stof(m2[4].str())<<"\n";
+        new_dest_ = atoi(m2[2].str().c_str());
+        if (new_dest_ > dest_) {
+          for (int l = 0; l < new_dest_ - dest_ - 1;
+               ++l) // fill the gap repeating the last number
+            m_source_offsets.push_back((index_t)prev_count_);
+          m_source_offsets.push_back((index_t)count_edges_);
+          prev_count_ = count_edges_;
+        }
+        count_edges_++;
+
+        dest_ = new_dest_;
+		max_dest_ = std::max(max_dest_, new_dest_);
+        orig_ = atoi(m2[1].str().c_str());
+        auto val = std::stof(m2[4].str());
+        m_destinations.push_back(orig_);
+        m_weights.push_back(val / 1.e4f);
+      }
+    }
+	m_size = max_dest_; // maximum of the nodes
+	for(auto i=m_source_offsets.size(); i<m_size+1; ++i)
+		m_source_offsets.push_back(count_edges_);
+  }
+
+
+  // reads the Aimsun graph in "forward" mode
+  H_F void readGraph(char const *filename) {
+    std::ifstream fin_(filename, std::ios_base::in);
+    if (!fin_) {
+      std::cout << "error reading file\n";
+      return;
+    }
+
+    std::string line_;
+    size_t count_edges_ = 0;
+    size_t prev_count_ = 0;
+    m_source_offsets.push_back((TTIndex)count_edges_);
+    size_t new_dest_ = 0;
+    index_t max_orig_ = 0;
+    while (std::getline(fin_, line_)) {
+      std::regex re2(std::string("(.*)->(.*)"));
+      std::cmatch m2;
+      index_t orig_ = 0, dest_ = new_dest_;
+      if (std::regex_search(line_.c_str(), m2, re2)) {
+        // std::cout<< m2[1]<<", "<<m2[2]<<", " <<std::stof(m2[3].str()) << ",
+        // "<< std::stof(m2[4].str())<<"\n";
+        new_dest_ = atoi(m2[1].str().c_str());
+        if (new_dest_ > dest_) {
+          for (int l = 0; l < new_dest_ - dest_ - 1;
+               ++l) // fill the gap repeating the last number
+            m_source_offsets.push_back((TTIndex)prev_count_);
+          m_source_offsets.push_back((TTIndex)count_edges_);
+          prev_count_ = count_edges_;
+        }
+        count_edges_++;
+
+        dest_ = new_dest_;
+        orig_ = atoi(m2[2].str().c_str());
+		max_orig_ = std::max(max_orig_, orig_);
+        m_destinations.push_back(orig_);
+      }
+    }
+	m_size = max_orig_; // maximum of the nodes
+	for(auto i=m_source_offsets.size(); i<m_size+1; ++i)
+		m_source_offsets.push_back(count_edges_);
+  }
+
   // reads a graph from the DIMACS database ("forward" mode)
   H_F int readDIMACS(char const *filename) {
     std::ifstream fin_(filename, std::ios_base::in);
@@ -271,7 +379,7 @@ public:
   H_F void randomNoise() {
     for (auto i = 0; i < m_destinations.size(); ++i)
       m_weights[i] +=
-          static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / .01f));
+          static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / 10.f/*.01f*/));
   }
 
   H_D_F

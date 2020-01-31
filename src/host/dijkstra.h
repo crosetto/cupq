@@ -44,16 +44,18 @@ void static dijkstra(Graph &graph_, VectorVal &potential_, VectorId &parent_,
   static_assert(is_Matrix<VectorVal>::value, "wrong vector type");
   static_assert(is_Matrix<VectorId>::value, "wrong vector type");
 
+  int visited=0;
+
   for (int sourceIt = 0; sourceIt < sources_.size(); ++sourceIt) {
 
     using float_t = typename VectorVal::value_type;
     using index_t = typename VectorId::value_type;
 
 #ifndef WIN_BUG_1
-    boost::heap::d_ary_heap<
+    ::boost::heap::d_ary_heap<
         std::pair<float_t, index_t>,
-        boost::heap::compare<impl_::Cmp<std::pair<float_t, index_t>>>,
-        boost::heap::arity<8>>
+        ::boost::heap::compare<impl_::Cmp<std::pair<float_t, index_t>>>,
+        ::boost::heap::arity<8>>
         waiting_;
 #else
     std::priority_queue<std::pair<float_t, index_t>,
@@ -65,7 +67,7 @@ void static dijkstra(Graph &graph_, VectorVal &potential_, VectorId &parent_,
     waiting_.reserve(potential_.nrows());
     potential_(sourceIt, sources_[sourceIt]) = 0;
 #ifdef SAVE_PATH
-    parent_(sourceIt, sources_[sourceIt]) = source_id_;
+    parent_(sourceIt, sources_[sourceIt]) = (source_id_ == (TIndex)-1) ? sources_[sourceIt] : source_id_;
 #endif
     waiting_.push(std::make_pair(0, sources_[sourceIt]));
     // int k=1;
@@ -92,6 +94,8 @@ void static dijkstra(Graph &graph_, VectorVal &potential_, VectorId &parent_,
 #endif
           waiting_.push(
               std::make_pair(potential_(sourceIt, i) + graph_.weights(j), e_));
+		  ++visited;
+
           potential_(sourceIt, e_) =
               potential_(sourceIt, i) + graph_.weights(j);
 #ifdef CHECK_RESULTS
@@ -104,6 +108,9 @@ void static dijkstra(Graph &graph_, VectorVal &potential_, VectorId &parent_,
         }
       }
     }
+
+  std::cout<<"visited "<<visited <<" edges\n";
+
   }
 }
 

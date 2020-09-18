@@ -44,9 +44,9 @@ static const std::size_t LOGLIMIT = 4;
 
 #ifdef __CUDACC__
 #include "device/attach_stream.h"
-#include "device/compute_dijkstra.h"
 #include "device/kernel.h"
+#include "device/compute_dijkstra.h"
 #endif
 
-#include "dijkstra_solver.h"
 #include "host/compute_dijkstra_host.h"
+#include "dijkstra_solver.h"

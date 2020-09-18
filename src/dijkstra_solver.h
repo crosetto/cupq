@@ -8,6 +8,7 @@ SPDX-License-Identifier: Apache-2.0
 #ifdef CUSP_PROFILE_HEAP
 #include <cuda_profiler_api.h>
 #endif
+#include <limits>
 
 namespace cupq {
 
@@ -74,7 +75,7 @@ template <typename TGraph> struct DijkstraSolver {
       mBackend.attachStreamErr();
       for (int j = 0; j < mSources.size(); ++j) {
         for (int k = 0; k < mGraphSize; ++k) {
-          mOut.first(j, k) = (value_t)FLT_MAX;
+          mOut.first(j, k) = std::numeric_limits<value_t>::max();
 #ifdef SAVE_PATH
           mOut.second(j, k) = no_path_; //(TIndex)-1;
 #endif
